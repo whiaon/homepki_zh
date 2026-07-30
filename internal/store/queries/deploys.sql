@@ -8,6 +8,16 @@ INSERT INTO deploy_targets (
     post_command, auto_on_rotate
 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 
+-- name: InsertDeployTargetWithRunState :exec
+INSERT INTO deploy_targets (
+    id, cert_id, name,
+    cert_path, key_path, chain_path,
+    mode, owner, "group",
+    post_command, auto_on_rotate,
+    last_deployed_at, last_deployed_serial,
+    last_status, last_error
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+
 -- name: UpdateDeployTarget :execrows
 UPDATE deploy_targets
    SET name           = ?,

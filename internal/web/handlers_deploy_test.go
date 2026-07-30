@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -313,14 +314,6 @@ func TestDeploy_AutoOnRotateFiresAfterRotation(t *testing.T) {
 		"auto_on_rotate": {"1"},
 	})
 
-	// Rotate the leaf — the new cert inherits no targets (rotation makes a
-	// fresh cert row), so auto-on-rotate fires on... wait. Targets attach to
-	// the OLD cert id; the new cert has none. Per LIFECYCLE.md §4.4 the
-	// targets that fire are the new cert's own targets. So a freshly-rotated
-	// cert with no targets won't fire anything. To exercise the hook, the
-	// targets need to be on the new cert. Instead, observe that the OLD
-	// cert's targets are NOT re-run automatically (which is the spec'd
-	// behaviour: targets follow the cert row, not the chain).
 	newID := mustIssue(t, c, "/certs/"+leafID+"/rotate", url.Values{
 		"subject_cn":      {"revoke.leaf.test"},
 		"key_algo":        {"ecdsa"},
@@ -330,13 +323,67 @@ func TestDeploy_AutoOnRotateFiresAfterRotation(t *testing.T) {
 	})
 
 	require.NotEqual(t, leafID, newID, "rotated cert has same id")
-	// Old target's last_status should still be unset — rotation does not
-	// touch the old target's row.
-	got, _ := store.GetDeployTarget(srv.db, tid)
-	assert.Nil(t, got.LastStatus, "old target should not have been re-run")
-	// The new cert has no deploy targets at all.
-	newTargets, _ := store.ListDeployTargets(srv.db, newID)
-	assert.Empty(t, newTargets, "new cert targets")
+
+	newTargets, err := store.ListDeployTargets(srv.db, newID)
+	require.NoError(t, err)
+	require.Len(t, newTargets, 1, "successor did not inherit the deploy target")
+	inherited := newTargets[0]
+	assert.NotEqual(t, tid, inherited.ID, "inherited target reused the old row id")
+	assert.Equal(t, certPath, inherited.CertPath)
+	assert.Equal(t, keyPath, inherited.KeyPath)
+	assert.True(t, inherited.AutoOnRotate, "auto_on_rotate not carried over")
+
+	newCert, err := store.GetCert(srv.db, newID)
+	require.NoError(t, err)
+	require.NotNil(t, inherited.LastStatus, "auto-on-rotate did not run on the successor")
+	assert.Equal(t, "ok", *inherited.LastStatus)
+	require.NotNil(t, inherited.LastDeployedSerial)
+	assert.Equal(t, newCert.SerialNumber, *inherited.LastDeployedSerial, "deployed serial is not the successor's")
+
+	writtenPEM, err := os.ReadFile(certPath)
+	require.NoError(t, err, "cert not written")
+	block, _ := pem.Decode(writtenPEM)
+	require.NotNil(t, block)
+	assert.Equal(t, newCert.DERCert, block.Bytes, "deployed cert is not the successor")
+
+	old, _ := store.GetDeployTarget(srv.db, tid)
+	assert.Nil(t, old.LastStatus, "old target should not have been re-run")
+}
+
+func TestDeploy_RotationInheritsTargetsWithoutAutoDeploy(t *testing.T) {
+	srv, c, leafID, dir := deployFixture(t)
+	certPath := filepath.Join(dir, "manual.crt")
+	tid := createTarget(t, c, srv, leafID, url.Values{
+		"name":      {"haproxy"},
+		"cert_path": {certPath},
+		"key_path":  {filepath.Join(dir, "manual.key")},
+	})
+	require.NoError(t, store.RecordDeployRun(srv.db, tid, store.DeployStatusOK, "deadbeef", "", time.Now().UTC()))
+
+	newID := mustIssue(t, c, "/certs/"+leafID+"/rotate", url.Values{
+		"subject_cn":      {"revoke.leaf.test"},
+		"key_algo":        {"ecdsa"},
+		"key_algo_params": {"P-256"},
+		"san_dns":         {"revoke.leaf.test"},
+		"validity_days":   {"90"},
+	})
+
+	newTargets, err := store.ListDeployTargets(srv.db, newID)
+	require.NoError(t, err)
+	require.Len(t, newTargets, 1)
+	inherited := newTargets[0]
+	assert.Equal(t, "haproxy", inherited.Name)
+	assert.False(t, inherited.AutoOnRotate)
+
+	newCert, err := store.GetCert(srv.db, newID)
+	require.NoError(t, err)
+	require.NotNil(t, inherited.LastDeployedSerial)
+	assert.Equal(t, "deadbeef", *inherited.LastDeployedSerial, "prior run state not carried over")
+	view := newDeployTargetView(inherited, newCert.SerialNumber)
+	assert.Equal(t, "stale", view.EffectiveStatus)
+
+	_, statErr := os.Stat(certPath)
+	assert.True(t, os.IsNotExist(statErr), "target without auto_on_rotate was deployed anyway")
 }
 
 func TestDeploy_AutoOnRotateRunsWhenTargetIsOnNewCert(t *testing.T) {

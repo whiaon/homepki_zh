@@ -207,3 +207,66 @@ func TestDeploys_FKCascadeOnCertDelete(t *testing.T) {
 	_, err = GetDeployTarget(db, "t1")
 	assert.ErrorIs(t, err, ErrDeployTargetNotFound, "after cert delete")
 }
+
+func TestDeploys_CopyDeployTargets(t *testing.T) {
+	db := openTestDB(t)
+	require.NoError(t, Migrate(db))
+	leafID := seedLeaf(t, db)
+	src := sampleTarget("t1", leafID)
+	require.NoError(t, InsertDeployTarget(db, src))
+	when := time.Now().UTC().Truncate(time.Second)
+	require.NoError(t, RecordDeployRun(db, "t1", DeployStatusOK, "0a", "", when))
+
+	successor := sampleCert("successor-id")
+	successor.SerialNumber = "0b"
+	require.NoError(t, insertCertTx(db, successor, sampleKey("successor-id")))
+
+	n, err := CopyDeployTargets(db, leafID, "successor-id")
+	require.NoError(t, err, "CopyDeployTargets")
+	assert.Equal(t, 1, n)
+
+	copies, err := ListDeployTargets(db, "successor-id")
+	require.NoError(t, err)
+	require.Len(t, copies, 1)
+	got := copies[0]
+	assert.NotEqual(t, "t1", got.ID, "copy must get a fresh id")
+	assert.Equal(t, "successor-id", got.CertID)
+	assert.Equal(t, src.Name, got.Name)
+	assert.Equal(t, src.CertPath, got.CertPath)
+	assert.Equal(t, src.KeyPath, got.KeyPath)
+	require.NotNil(t, got.ChainPath)
+	assert.Equal(t, *src.ChainPath, *got.ChainPath)
+	assert.Equal(t, src.Mode, got.Mode)
+	require.NotNil(t, got.Owner)
+	assert.Equal(t, *src.Owner, *got.Owner)
+	assert.Nil(t, got.Group)
+	require.NotNil(t, got.PostCommand)
+	assert.Equal(t, *src.PostCommand, *got.PostCommand)
+	assert.True(t, got.AutoOnRotate)
+	require.NotNil(t, got.LastDeployedSerial)
+	assert.Equal(t, "0a", *got.LastDeployedSerial, "run state should describe what is on disk")
+	require.NotNil(t, got.LastStatus)
+	assert.Equal(t, "ok", *got.LastStatus)
+
+	orig, err := GetDeployTarget(db, "t1")
+	require.NoError(t, err)
+	assert.Equal(t, leafID, orig.CertID, "source target must stay on the old cert")
+}
+
+func TestDeploys_CopyDeployTargets_NoSources(t *testing.T) {
+	db := openTestDB(t)
+	require.NoError(t, Migrate(db))
+	leafID := seedLeaf(t, db)
+	n, err := CopyDeployTargets(db, leafID, "successor-id")
+	require.NoError(t, err)
+	assert.Zero(t, n)
+}
+
+func TestDeploys_CopyDeployTargets_RequiresBothIDs(t *testing.T) {
+	db := openTestDB(t)
+	require.NoError(t, Migrate(db))
+	_, err := CopyDeployTargets(db, "", "successor-id")
+	assert.Error(t, err)
+	_, err = CopyDeployTargets(db, "leaf-id", "")
+	assert.Error(t, err)
+}

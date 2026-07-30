@@ -93,6 +93,39 @@ func CreateDeployTargetWithToken(db *sql.DB, t *DeployTarget, formToken, resultU
 	return nil
 }
 
+func CopyDeployTargets(db sqlcDBTX, fromCertID, toCertID string) (int, error) {
+	if fromCertID == "" || toCertID == "" {
+		return 0, errors.New("fromCertID and toCertID required")
+	}
+	sources, err := ListDeployTargets(db, fromCertID)
+	if err != nil {
+		return 0, fmt.Errorf("list source targets: %w", err)
+	}
+	q := storedb.New(db)
+	for _, t := range sources {
+		if err := q.InsertDeployTargetWithRunState(context.Background(), storedb.InsertDeployTargetWithRunStateParams{
+			ID:                 NewDeployTargetID(),
+			CertID:             toCertID,
+			Name:               t.Name,
+			CertPath:           t.CertPath,
+			KeyPath:            t.KeyPath,
+			ChainPath:          t.ChainPath,
+			Mode:               t.Mode,
+			Owner:              t.Owner,
+			Group:              t.Group,
+			PostCommand:        t.PostCommand,
+			AutoOnRotate:       boolToInt(t.AutoOnRotate),
+			LastDeployedAt:     t.LastDeployedAt,
+			LastDeployedSerial: t.LastDeployedSerial,
+			LastStatus:         t.LastStatus,
+			LastError:          t.LastError,
+		}); err != nil {
+			return 0, fmt.Errorf("copy target %q: %w", t.Name, err)
+		}
+	}
+	return len(sources), nil
+}
+
 // UpdateDeployTarget overwrites every editable column on the (id, cert_id)
 // tuple. Returns ErrDeployTargetNotFound if no such row exists. Atomic at
 // the row level — a failed rename in the runner won't leave the metadata

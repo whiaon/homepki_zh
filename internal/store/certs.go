@@ -119,16 +119,6 @@ func IssueCertWithToken(db *sql.DB, c *Cert, k *CertKey, initialCRL *CRL, formTo
 	return nil
 }
 
-// IssueRotationWithToken atomically inserts the new cert + key bundle (with
-// optional initial CRL for CA rotations), supersedes the old cert (status
-// active → superseded, replaced_by_id → newCert.ID), and marks the form
-// token used. Either everything lands or nothing does.
-//
-// newCert.ReplacesID must already be set to oldID by the caller — the
-// rotation chain link is the caller's responsibility.
-//
-// Returns ErrSupersedeNotActive if oldID is not in 'active' state at commit
-// time.
 func IssueRotationWithToken(db *sql.DB, newCert *Cert, newKey *CertKey, initialCRL *CRL, oldID, formToken, resultURL string) error {
 	if formToken == "" {
 		return errors.New("form token required")
@@ -159,6 +149,9 @@ func IssueRotationWithToken(db *sql.DB, newCert *Cert, newKey *CertKey, initialC
 		}
 	}
 	if err := supersedeOldTx(tx, oldID, newCert.ID); err != nil {
+		return err
+	}
+	if _, err := CopyDeployTargets(tx, oldID, newCert.ID); err != nil {
 		return err
 	}
 	if err := MarkIdemTokenUsed(tx, formToken, resultURL); err != nil {

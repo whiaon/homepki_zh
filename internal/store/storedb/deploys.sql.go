@@ -105,6 +105,56 @@ func (q *Queries) InsertDeployTarget(ctx context.Context, arg InsertDeployTarget
 	return err
 }
 
+const insertDeployTargetWithRunState = `-- name: InsertDeployTargetWithRunState :exec
+INSERT INTO deploy_targets (
+    id, cert_id, name,
+    cert_path, key_path, chain_path,
+    mode, owner, "group",
+    post_command, auto_on_rotate,
+    last_deployed_at, last_deployed_serial,
+    last_status, last_error
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+`
+
+type InsertDeployTargetWithRunStateParams struct {
+	ID                 string
+	CertID             string
+	Name               string
+	CertPath           string
+	KeyPath            string
+	ChainPath          *string
+	Mode               string
+	Owner              *string
+	Group              *string
+	PostCommand        *string
+	AutoOnRotate       int64
+	LastDeployedAt     *time.Time
+	LastDeployedSerial *string
+	LastStatus         *string
+	LastError          *string
+}
+
+func (q *Queries) InsertDeployTargetWithRunState(ctx context.Context, arg InsertDeployTargetWithRunStateParams) error {
+	_, err := q.db.ExecContext(ctx, insertDeployTargetWithRunState,
+		arg.ID,
+		arg.CertID,
+		arg.Name,
+		arg.CertPath,
+		arg.KeyPath,
+		arg.ChainPath,
+		arg.Mode,
+		arg.Owner,
+		arg.Group,
+		arg.PostCommand,
+		arg.AutoOnRotate,
+		arg.LastDeployedAt,
+		arg.LastDeployedSerial,
+		arg.LastStatus,
+		arg.LastError,
+	)
+	return err
+}
+
 const listDeployTargetsByCertID = `-- name: ListDeployTargetsByCertID :many
 SELECT id, cert_id, name,
        cert_path, key_path, chain_path,

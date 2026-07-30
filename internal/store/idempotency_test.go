@@ -229,6 +229,31 @@ func TestIssueRotationWithToken_AtomicSuccess(t *testing.T) {
 	assert.NotNil(t, row.UsedAt, "token should have been marked used")
 }
 
+func TestIssueRotationWithToken_CopiesDeployTargets(t *testing.T) {
+	db := openTestDB(t)
+	require.NoError(t, Migrate(db))
+	_, interID, leafID := seed(t, db)
+	require.NoError(t, InsertDeployTarget(db, sampleTarget("t1", leafID)))
+	tok, err := CreateIdemToken(db)
+	require.NoError(t, err)
+
+	newCert := makeCert("rotated-leaf", "leaf", &interID, "leaf.test")
+	newCert.SerialNumber = "0f"
+	lid := leafID
+	newCert.ReplacesID = &lid
+
+	require.NoError(t, IssueRotationWithToken(db, newCert, sampleKey("rotated-leaf"), nil, leafID, tok, "/certs/rotated-leaf"))
+
+	copies, err := ListDeployTargets(db, "rotated-leaf")
+	require.NoError(t, err)
+	require.Len(t, copies, 1, "successor did not inherit deploy targets")
+	assert.Equal(t, "nginx", copies[0].Name)
+
+	kept, err := ListDeployTargets(db, leafID)
+	require.NoError(t, err)
+	assert.Len(t, kept, 1, "superseded cert should keep its own targets")
+}
+
 func TestIssueRotationWithToken_RefusesNonActiveOld(t *testing.T) {
 	db := openTestDB(t)
 	require.NoError(t, Migrate(db))
@@ -244,8 +269,13 @@ func TestIssueRotationWithToken_RefusesNonActiveOld(t *testing.T) {
 	lid := leafID
 	newCert.ReplacesID = &lid
 
+	require.NoError(t, InsertDeployTarget(db, sampleTarget("t1", leafID)))
+
 	err = IssueRotationWithToken(db, newCert, sampleKey("would-be-replacement"), nil, leafID, tok, "/x")
 	assert.ErrorIs(t, err, ErrSupersedeNotActive)
+	copies, err := ListDeployTargets(db, "would-be-replacement")
+	require.NoError(t, err)
+	assert.Empty(t, copies, "no targets should be copied when the rotation rolls back")
 	// And nothing else changed: token unmarked, new cert absent.
 	_, err = GetCert(db, "would-be-replacement")
 	assert.ErrorIs(t, err, ErrCertNotFound, "new cert should not have been written")

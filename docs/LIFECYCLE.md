@@ -314,14 +314,23 @@ fields**. Specifically:
 - Same SANs unless edited.
 - CRL DP extension uses the same issuer URL as the old cert (issuer hasn't
   changed).
+- **Deploy targets are inherited.** Every `deploy_targets` row on the old
+  cert is copied onto the new one with a fresh row `id`, the same
+  configuration (paths, mode, owner/group, post-command, `auto_on_rotate`),
+  and the last-run columns carried over verbatim — those describe what is
+  currently sitting at those paths on disk, which rotation does not change,
+  so the UI shows `stale` until the successor is actually deployed. The old
+  cert keeps its own target rows as history; they are never re-run by the
+  rotation.
 
 The whole rotation is one DB transaction: either both rows reach their final
 state or nothing changes.
 
 ### 4.4 Auto-deploy
 
-If the cert has any deploy targets with `auto_on_rotate=true`, those targets
-run immediately after the transaction commits, using the new cert. Each
+If the new cert has any inherited deploy targets with `auto_on_rotate=true`,
+those targets run immediately after the transaction commits, writing the new
+cert. The copies are what run — the old cert's rows are left alone. Each
 target's outcome is recorded as `last_status` (`ok`/`failed`) with a
 timestamp. A target failure does **not** roll back the rotation — the new
 cert exists, the old is superseded, the operator just sees a red status on

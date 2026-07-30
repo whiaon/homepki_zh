@@ -308,6 +308,10 @@ result of the last run.
   hard-deleted (out of scope in v1, but the schema is ready), its targets
   go too.
 
+Targets belong to a single cert row, so a rotation copies them onto the
+successor inside the rotation transaction (new `id`, same configuration,
+last-run columns carried over) — see [LIFECYCLE.md §4.3](LIFECYCLE.md#43-effect-on-the-new-cert).
+
 **Indexes:**
 
 - `idx_deploy_targets_cert_id` on `(cert_id)` — feeds the cert detail page.
@@ -379,7 +383,7 @@ every form-token consumption. Required transactions:
 | operation                              | transactional scope |
 | -------------------------------------- | ------------------- |
 | Issue cert (any type)                  | `idempotency_tokens` mark used → insert `certificates` row → insert `cert_keys` row → if CA, insert initial `crls` row |
-| Rotate                                 | `idempotency_tokens` mark used → insert new `certificates` row → insert new `cert_keys` row → update old `certificates` row (`status`, `replaced_by_id`) → set new row's `replaces_id` |
+| Rotate                                 | `idempotency_tokens` mark used → insert new `certificates` row → insert new `cert_keys` row → update old `certificates` row (`status`, `replaced_by_id`) → set new row's `replaces_id` → copy old row's `deploy_targets` onto the new cert |
 | Revoke                                 | update `certificates` row → insert new `crls` row (regenerated) |
 | Passphrase rotation                    | `idempotency_tokens` mark used → re-wrap all DEKs → update `settings` |
 | Deploy target create/edit              | `idempotency_tokens` mark used → insert/update `deploy_targets` row |

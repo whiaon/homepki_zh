@@ -382,8 +382,10 @@ active version; rotate the successor instead.)
 Form-token gated (§2.7.1). Replay returns 303 to the same successor that
 was created on the first submission — never creates a second one.
 
-If the cert has deploy targets with `auto_on_rotate = true`, those run
-inside the same handler before redirecting. Per-target failures are recorded
+The old cert's deploy targets are copied onto the successor as part of the
+same transaction (LIFECYCLE.md §4.3). Of those copies, the ones with
+`auto_on_rotate = true` run inside the same handler before redirecting,
+writing the new cert. Per-target failures are recorded
 on the target row but do not fail the rotation — the redirect lands on the
 new cert's detail page where the target statuses are visible.
 

@@ -235,7 +235,7 @@ func TestUnlockPost_WrongPassphrase(t *testing.T) {
 	c.get("/unlock") // prime CSRF cookie
 	w := c.postForm("/unlock", url.Values{"passphrase": {"definitely-wrong"}})
 	assert.Equal(t, http.StatusBadRequest, w.Code)
-	assert.Contains(t, w.Body.String(), "Incorrect passphrase")
+	assert.Contains(t, w.Body.String(), "密码错误")
 	assert.False(t, srv.keystore.IsUnlocked(), "keystore should remain locked after wrong passphrase")
 }
 

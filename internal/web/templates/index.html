@@ -1,23 +1,21 @@
 {{define "title"}}homepki{{end}}
-
 {{define "header_actions"}}
 <nav>
   <ul>
-    <li><span class="pill pill-ok">unlocked</span></li>
-    <li><a href="/certs/new/root">+ Root</a></li>
-    <li><a href="/certs/new/intermediate">+ Intermediate</a></li>
-    <li><a href="/certs/new/leaf">+ Leaf</a></li>
-    <li><a href="/settings">Settings</a></li>
+    <li><span class="pill pill-ok">已解锁</span></li>
+    <li><a href="/certs/new/root">+ 根证书</a></li>
+    <li><a href="/certs/new/intermediate">+ 中间证书</a></li>
+    <li><a href="/certs/new/leaf">+ 终端证书</a></li>
+    <li><a href="/settings">设置</a></li>
     <li>
       <form method="post" action="/lock" style="margin: 0;">
         <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
-        <button type="submit" class="secondary outline">Lock</button>
+        <button type="submit" class="secondary outline">锁定</button>
       </form>
     </li>
   </ul>
 </nav>
 {{end}}
-
 {{define "content"}}
 <form method="get" action="/" class="toolbar"
       hx-get="/"
@@ -26,48 +24,45 @@
       hx-push-url="true"
       hx-trigger="change, keyup changed delay:300ms from:input[type=search], submit">
   <input type="search" name="q" value="{{.Q}}"
-         placeholder="Filter by CN, SAN, serial, fingerprint…" autocomplete="off">
+         placeholder="按通用名称、SAN、序列号、指纹筛选…" autocomplete="off">
   <select name="status">
-    <option value="">All statuses</option>
+    <option value="">全部状态</option>
     {{range .StatusOptions}}
     <option value="{{.}}" {{if eq $.Status .}}selected{{end}}>{{.}}</option>
     {{end}}
   </select>
-  <button type="submit" class="secondary">Filter</button>
+  <button type="submit" class="secondary">筛选</button>
   {{if .Active}}
-  <a href="/" role="button" class="secondary outline">Clear</a>
+  <a href="/" role="button" class="secondary outline">清空</a>
   {{end}}
 </form>
-
 <div id="index-fragment">
 {{template "index_fragment" .}}
 </div>
 {{end}}
-
 {{define "index_fragment"}}
 <div class="section-head">
   <h2>
-    Authorities
+    证书颁发机构
     <small>
-      {{if .Active}}{{len .Authorities}} of {{.TotalAuthorities}} match{{else}}roots and intermediates{{end}}
+      {{if .Active}}共 {{.TotalAuthorities}} 条，当前匹配 {{len .Authorities}} 条{{else}}根证书与中间证书{{end}}
     </small>
   </h2>
   <div class="actions">
-    <a href="/certs/new/root">+ Issue root</a>
-    <a href="/certs/import/root">↑ Import root</a>
-    <a href="/certs/new/intermediate">+ Issue intermediate</a>
+    <a href="/certs/new/root">+ 签发根证书</a>
+    <a href="/certs/import/root">↑ 导入根证书</a>
+    <a href="/certs/new/intermediate">+ 签发中间证书</a>
   </div>
 </div>
-
 {{if .Authorities}}
 <table class="flat">
   <thead><tr>
-    <th style="width:18rem;">Subject</th>
-    <th>Type</th>
-    <th>Key</th>
-    <th>Issuer</th>
-    <th>Expires</th>
-    <th>Status</th>
+    <th style="width:18rem;">主体名称</th>
+    <th>类型</th>
+    <th>密钥</th>
+    <th>颁发者</th>
+    <th>到期时间</th>
+    <th>状态</th>
     <th></th>
   </tr></thead>
   <tbody>
@@ -79,22 +74,22 @@
       </td>
       <td><span class="type">{{.TypeDisplay}}</span></td>
       <td>{{.KeyDisplay}}</td>
-      <td>{{if .ParentID}}{{.IssuerCN}}{{else}}<span class="meta">— self —</span>{{end}}</td>
+      <td>{{if .ParentID}}{{.IssuerCN}}{{else}}<span class="meta">— 自签名 —</span>{{end}}</td>
       <td class="expires {{if eq .EffectiveStatus "expired"}}exp-bad{{else if eq .EffectiveStatus "expiring"}}exp-warn{{end}}">
         <strong>{{.NotAfterDisplay}}</strong> <span class="meta">{{.RelativeExpiry}}</span>
       </td>
       <td><span class="pill {{.StatusPillClass}}">{{.EffectiveStatus}}</span></td>
       <td class="actions">
-        <a href="/certs/{{.ID}}">view</a>
+        <a href="/certs/{{.ID}}">查看</a>
         <span class="sep">|</span>
         <a href="/certs/{{.ID}}/cert.pem">cert.pem</a>
         {{if .CanSignCRL}}
-        <a href="/crl/{{.ID}}.crl">crl</a>
-        <a href="/certs/{{.ID}}/crls">history</a>
+        <a href="/crl/{{.ID}}.crl">CRL</a>
+        <a href="/certs/{{.ID}}/crls">历史</a>
         {{end}}
         {{if eq .Status "active"}}
         <span class="sep">|</span>
-        <a href="/certs/{{.ID}}/rotate">rotate</a>
+        <a href="/certs/{{.ID}}/rotate">轮换</a>
         {{end}}
       </td>
     </tr>
@@ -104,33 +99,31 @@
 {{else}}
 <div class="empty">
   {{if .Active}}
-  No authorities match the current filter. <a href="/">Clear</a> to see all {{.TotalAuthorities}}.
+  没有证书匹配当前筛选条件。<a href="/">清空</a>查看全部 {{.TotalAuthorities}} 条。
   {{else}}
-  No authorities yet.
+  暂无证书颁发机构。
   {{end}}
 </div>
 {{end}}
-
 <div class="section-head">
   <h2>
-    Leaf certificates
+    终端证书
     <small>
-      {{if .Active}}{{len .Leaves}} of {{.TotalLeaves}} match{{else}}{{.TotalLeaves}} issued{{end}}
+      {{if .Active}}共 {{.TotalLeaves}} 条，当前匹配 {{len .Leaves}} 条{{else}}已签发 {{.TotalLeaves}} 个{{end}}
     </small>
   </h2>
   <div class="actions">
-    <a href="/certs/new/leaf">+ Issue leaf</a>
+    <a href="/certs/new/leaf">+ 签发终端证书</a>
   </div>
 </div>
-
 {{if .Leaves}}
 <table class="flat">
   <thead><tr>
-    <th style="width:16rem;">Subject / SANs</th>
-    <th>Key</th>
-    <th>Issuer</th>
-    <th>Expires</th>
-    <th>Status</th>
+    <th style="width:16rem;">主体 / SAN</th>
+    <th>密钥</th>
+    <th>颁发者</th>
+    <th>到期时间</th>
+    <th>状态</th>
     <th></th>
   </tr></thead>
   <tbody>
@@ -147,13 +140,13 @@
       </td>
       <td><span class="pill {{.StatusPillClass}}">{{.EffectiveStatus}}</span></td>
       <td class="actions">
-        <a href="/certs/{{.ID}}">view</a>
+        <a href="/certs/{{.ID}}">查看</a>
         <span class="sep">|</span>
         <a href="/certs/{{.ID}}/cert.pem">cert.pem</a>
         <a href="/certs/{{.ID}}/fullchain.pem">fullchain.pem</a>
         {{if eq .Status "active"}}
         <span class="sep">|</span>
-        <a href="/certs/{{.ID}}/rotate">rotate</a>
+        <a href="/certs/{{.ID}}/rotate">轮换</a>
         {{end}}
       </td>
     </tr>
@@ -163,9 +156,9 @@
 {{else}}
 <div class="empty">
   {{if .Active}}
-  No leaves match the current filter. <a href="/">Clear</a> to see all {{.TotalLeaves}}.
+  没有终端证书匹配当前筛选条件。<a href="/">清空</a>查看全部 {{.TotalLeaves}}。
   {{else}}
-  No leaf certificates yet.
+  暂无终端证书。
   {{end}}
 </div>
 {{end}}

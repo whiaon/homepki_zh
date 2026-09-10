@@ -1,93 +1,82 @@
 {{define "title"}}homepki — {{.PageTitle}}{{end}}
-
 {{define "header_actions"}}
 <nav>
   <ul>
-    <li><span class="pill pill-ok">unlocked</span></li>
-    <li><a href="/">← Back</a></li>
+    <li><span class="pill pill-ok">已解锁</span></li>
+    <li><a href="/">← 返回</a></li>
   </ul>
 </nav>
 {{end}}
-
 {{define "content"}}
 <article>
   <header><h2 style="margin-bottom: 0.25rem;">{{.PageHeading}}</h2></header>
-  <p><small>Leaves carry serverAuth EKU and one or more SANs. They typically live for 90 days.</small></p>
-
+  <p><small>终端证书带有服务器身份验证扩展密钥用法（serverAuth EKU）和至少一个SAN，通常有效期为90天。</small></p>
   {{template "form_fragment" .}}
 </article>
 {{end}}
-
 {{define "form_fragment"}}
 <div id="issue-form" hx-target="this" hx-swap="outerHTML">
   {{if .Error}}<p role="alert" style="color: var(--pico-color-red-550);">{{.Error}}</p>{{end}}
-
   {{if not .ParentChoices}}
-    <p><strong>No active CAs available.</strong> <a href="/certs/new/intermediate">Issue an intermediate first.</a></p>
+    <p><strong>没有可用的有效CA。</strong> <a href="/certs/new/intermediate">请先生成中间证书。</a></p>
   {{else}}
   <form method="post" action="{{.FormAction}}" hx-post="{{.FormAction}}">
     <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
     <input type="hidden" name="form_token" value="{{.FormToken}}">
-
-    <label>Parent CA (required)
+    <label>父级CA（必填）
       <select name="parent_id" required {{if .ParentLocked}}disabled{{end}}>
-        <option value="">— pick an issuing CA —</option>
+        <option value="">— 选择签发CA —</option>
         {{range .ParentChoices}}
-        <option value="{{.ID}}" {{if eq $.ParentID .ID}}selected{{end}}>{{.CN}} ({{.Type}})</option>
+        <option value="{{.ID}}" {{if eq $.ParentID .ID}}selected{{end}}>{{.CN}}（{{.Type}}）</option>
         {{end}}
       </select>
       {{if .ParentLocked}}<input type="hidden" name="parent_id" value="{{.ParentID}}">{{end}}
     </label>
-
     <fieldset>
-      <legend><strong>Subject</strong></legend>
-      <label>Common Name (required)
+      <legend><strong>主体信息</strong></legend>
+      <label>通用名称（必填）
         <input type="text" name="subject_cn" required autofocus value="{{.SubjectCN}}" placeholder="leaf.lan">
       </label>
       <div class="grid">
-        <label>Organization
+        <label>组织
           <input type="text" name="subject_o" value="{{.SubjectO}}">
         </label>
-        <label>Organizational Unit
+        <label>组织单位
           <input type="text" name="subject_ou" value="{{.SubjectOU}}">
         </label>
       </div>
     </fieldset>
-
     <fieldset>
-      <legend><strong>Subject alternative names</strong> <small>(at least one required)</small></legend>
-      <label>DNS names <small>— one per line, or comma-separated</small>
+      <legend><strong>主体备用名称</strong> <small>（至少填写一项）</small></legend>
+      <label>DNS名称 <small>—— 一行一个，或使用逗号分隔</small>
         <textarea name="san_dns" rows="3" placeholder="leaf.lan&#10;alt.leaf.lan">{{.SANDNS}}</textarea>
       </label>
-      <label>IP addresses <small>— one per line, or comma-separated</small>
+      <label>IP地址 <small>—— 一行一个，或使用逗号分隔</small>
         <textarea name="san_ip" rows="2" placeholder="10.0.0.1">{{.SANIPs}}</textarea>
       </label>
     </fieldset>
-
     <fieldset>
-      <legend><strong>Key</strong></legend>
+      <legend><strong>密钥</strong></legend>
       <div class="grid">
-        <label>Algorithm
+        <label>算法
           <select name="key_algo">
             <option value="rsa" {{if eq .KeyAlgo "rsa"}}selected{{end}}>RSA</option>
             <option value="ecdsa" {{if eq .KeyAlgo "ecdsa"}}selected{{end}}>ECDSA</option>
             <option value="ed25519" {{if eq .KeyAlgo "ed25519"}}selected{{end}}>Ed25519</option>
           </select>
         </label>
-        <label>Parameters
+        <label>参数
           <input type="text" name="key_algo_params" value="{{.KeyAlgoParams}}" placeholder="P-256 / P-384 / 2048 / 3072 / 4096">
         </label>
       </div>
     </fieldset>
-
     <fieldset>
-      <legend><strong>Validity</strong></legend>
-      <label>Days
+      <legend><strong>有效期</strong></legend>
+      <label>天数
         <input type="number" name="validity_days" min="1" required value="{{.ValidityDays}}">
       </label>
     </fieldset>
-
-    <button type="submit" style="margin-top: 0.5rem;">Issue leaf certificate</button>
+    <button type="submit" style="margin-top: 0.5rem;">签发终端证书</button>
   </form>
   {{end}}
 </div>

@@ -1,5 +1,5 @@
 {{define "layout"}}<!doctype html>
-<html lang="en" data-theme="light">
+<html lang="zh-CN" data-theme="light">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -9,22 +9,17 @@
   <script src="/static/htmx.min.js" defer></script>
 </head>
 <body>
-
 <header class="app">
-  <a href="/" class="brand">homepki <small>private PKI</small></a>
+  <a href="/" class="brand">homepki <small>私有PKI系统</small></a>
   {{block "header_actions" .}}{{end}}
 </header>
-
 <main>
   {{template "content" .}}
 </main>
-
 <footer class="app">
-  <small>homepki &middot; <a href="/healthz">healthz</a></small>
+  <small>homepki &middot; <a href="/healthz">健康检查</a></small>
 </footer>
-
 </body>
 </html>
 {{end}}
-
 {{define "title"}}homepki{{end}}

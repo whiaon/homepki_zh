@@ -1,44 +1,38 @@
-{{define "title"}}CRL history — {{.View.SubjectCN}}{{end}}
-
+{{define "title"}}CRL历史记录 — {{.View.SubjectCN}}{{end}}
 {{define "header_actions"}}
 <nav>
   <ul>
-    <li><span class="pill pill-ok">unlocked</span></li>
-    <li><a href="/certs/{{.View.ID}}">← Back to {{.View.SubjectCN}}</a></li>
+    <li><span class="pill pill-ok">已解锁</span></li>
+    <li><a href="/certs/{{.View.ID}}">← 返回 {{.View.SubjectCN}}</a></li>
     <li>
       <form method="post" action="/lock" style="margin: 0;">
         <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
-        <button type="submit" class="secondary outline">Lock</button>
+        <button type="submit" class="secondary outline">锁定</button>
       </form>
     </li>
   </ul>
 </nav>
 {{end}}
-
 {{define "content"}}
 <article>
   <header>
-    <h2 style="margin-bottom: 0.25rem;">CRL history</h2>
-    <small>For {{.View.Type}} <strong>{{.View.SubjectCN}}</strong></small>
+    <h2 style="margin-bottom: 0.25rem;">CRL历史记录</h2>
+    <small>所属{{.View.Type}} <strong>{{.View.SubjectCN}}</strong></small>
   </header>
-
   <p>
     <small>
-      Each row is a signed snapshot of this CA's revocation list at one
-      point in time. The latest row is the one served by the public
+      每一行代表此CA在对应时间点已签名的吊销列表快照。最新条目由公共接口
       <a href="/crl/{{.View.ID}}.crl"><code>/crl/{{.View.ID}}.crl</code></a>
-      endpoint; older snapshots are immutable and downloadable here in case
-      a verifier needs to check a cert against a historical revocation set.
+      提供；旧快照不可修改，可在此下载，用于校验程序对照历史吊销集合验证证书。
     </small>
   </p>
-
   {{if .CRLs}}
   <table>
     <thead>
       <tr>
-        <th>Number</th>
-        <th>This update</th>
-        <th>Next update</th>
+        <th>版本号</th>
+        <th>本次更新时间</th>
+        <th>下次更新时间</th>
         <th></th>
       </tr>
     </thead>
@@ -47,17 +41,17 @@
       <tr>
         <td>
           <strong>{{.Number}}</strong>
-          {{if .IsLatest}}<span class="pill pill-ok" style="margin-left: 0.5rem;">latest</span>{{end}}
+          {{if .IsLatest}}<span class="pill pill-ok" style="margin-left: 0.5rem;">最新</span>{{end}}
         </td>
         <td><small>{{.ThisUpdate}}</small></td>
         <td><small>{{.NextUpdate}}</small></td>
-        <td><a href="{{.DownloadURL}}">download .crl</a></td>
+        <td><a href="{{.DownloadURL}}">下载 .crl</a></td>
       </tr>
       {{end}}
     </tbody>
   </table>
   {{else}}
-  <p><small>No CRLs issued yet — this CA was just created.</small></p>
+  <p><small>尚未生成任何CRL — 此CA刚创建完成。</small></p>
   {{end}}
 </article>
 {{end}}

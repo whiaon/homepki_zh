@@ -1,63 +1,49 @@
-{{define "title"}}homepki — import root CA{{end}}
-
+{{define "title"}}homepki — 导入根CA{{end}}
 {{define "header_actions"}}
 <nav>
   <ul>
-    <li><span class="pill pill-ok">unlocked</span></li>
-    <li><a href="/">← Back</a></li>
+    <li><span class="pill pill-ok">已解锁</span></li>
+    <li><a href="/">← 返回</a></li>
   </ul>
 </nav>
 {{end}}
-
 {{define "content"}}
 <article>
-  <header><h2 style="margin-bottom: 0.25rem;">Import root CA</h2></header>
+  <header><h2 style="margin-bottom: 0.25rem;">导入根CA</h2></header>
   <p>
     <small>
-      Register a self-signed root CA you minted elsewhere. homepki seals
-      the private key under the in-memory passphrase like any other CA,
-      and you can issue intermediates and leaves under it normally —
-      those new children get homepki's CRL distribution point baked in,
-      so revocation works for everything issued through homepki going
-      forward. Re-uploading the same cert is a no-op (idempotent on
-      SHA-256 fingerprint).
+      注册在其他地方生成的自签名根CA。homepki会像处理其他CA一样，使用内存密钥加密保护私钥。
+      你可以正常在此根CA下签发中间证书与终端证书，新签发的子证书会内置homepki的CRL分发点，
+      后续所有通过homepki签发的证书都支持吊销功能。重复上传相同证书不会执行任何操作（基于SHA-256指纹做幂等判断）。
     </small>
   </p>
-
   {{template "form_fragment" .}}
 </article>
 {{end}}
-
 {{define "form_fragment"}}
 <div id="issue-form" hx-target="this" hx-swap="outerHTML">
   {{if .Error}}<p role="alert" style="color: var(--pico-color-red-550);">{{.Error}}</p>{{end}}
-
   <form method="post" action="/certs/import/root" hx-post="/certs/import/root">
     <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
     <input type="hidden" name="form_token" value="{{.FormToken}}">
-
-    <label>Certificate (PEM)
+    <label>证书（PEM格式）
       <textarea name="cert_pem" rows="10" required autofocus
                 placeholder="-----BEGIN CERTIFICATE-----&#10;…&#10;-----END CERTIFICATE-----"
                 style="font-family: var(--pico-font-family-monospace); font-size: 0.82rem;">{{.CertPEM}}</textarea>
       <small>
-        Exactly one self-signed CERTIFICATE block. Subject must equal
-        Issuer and the signature must verify under the cert's own key.
+        仅允许单个自签名证书块。主体信息必须和颁发者一致，并且签名可通过证书自身密钥验证。
       </small>
     </label>
-
-    <label>Private key (PKCS#8 PEM)
+    <label>私钥（PKCS#8 PEM）
       <textarea name="key_pem" rows="10" required
                 placeholder="-----BEGIN PRIVATE KEY-----&#10;…&#10;-----END PRIVATE KEY-----"
                 style="font-family: var(--pico-font-family-monospace); font-size: 0.82rem;">{{.KeyPEM}}</textarea>
       <small>
-        PKCS#8 only. If you have an "RSA PRIVATE KEY" or "EC PRIVATE KEY"
-        block, convert it first:
-        <code>openssl pkcs8 -topk8 -nocrypt -in key.pem -out key.pkcs8.pem</code>.
+        仅支持PKCS#8格式。如果你的私钥是 "RSA PRIVATE KEY" 或 "EC PRIVATE KEY"，需要先转换：
+        <code>openssl pkcs8 -topk8 -nocrypt -in key.pem -out key.pkcs8.pem</code>。
       </small>
     </label>
-
-    <button type="submit" style="margin-top: 0.5rem;">Import root</button>
+    <button type="submit" style="margin-top: 0.5rem;">导入根证书</button>
   </form>
 </div>
 {{end}}

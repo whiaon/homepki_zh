@@ -1,81 +1,72 @@
 {{define "title"}}homepki — {{.PageTitle}}{{end}}
-
 {{define "header_actions"}}
 <nav>
   <ul>
-    <li><span class="pill pill-ok">unlocked</span></li>
-    <li><a href="/">← Back</a></li>
+    <li><span class="pill pill-ok">已解锁</span></li>
+    <li><a href="/">← 返回</a></li>
   </ul>
 </nav>
 {{end}}
-
 {{define "content"}}
 <article>
   <header><h2 style="margin-bottom: 0.25rem;">{{.PageHeading}}</h2></header>
-  <p><small>Roots are self-signed and have no CRL distribution point. They typically live for 10+ years.</small></p>
-
+  <p><small>根证书为自签名证书，不带CRL分发点，有效期通常在10年以上。</small></p>
   {{template "form_fragment" .}}
 </article>
 {{end}}
-
 {{define "form_fragment"}}
 <div id="issue-form" hx-target="this" hx-swap="outerHTML">
   {{if .Error}}<p role="alert" style="color: var(--pico-color-red-550);">{{.Error}}</p>{{end}}
-
   <form method="post" action="{{.FormAction}}" hx-post="{{.FormAction}}">
     <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
     <input type="hidden" name="form_token" value="{{.FormToken}}">
-
     <fieldset>
-      <legend><strong>Subject</strong></legend>
-      <label>Common Name (required)
+      <legend><strong>主体信息</strong></legend>
+      <label>通用名称（必填）
         <input type="text" name="subject_cn" required autofocus value="{{.SubjectCN}}">
       </label>
       <div class="grid">
-        <label>Organization
+        <label>组织
           <input type="text" name="subject_o" value="{{.SubjectO}}">
         </label>
-        <label>Organizational Unit
+        <label>组织单位
           <input type="text" name="subject_ou" value="{{.SubjectOU}}">
         </label>
       </div>
       <div class="grid">
-        <label>Locality
+        <label>所在地
           <input type="text" name="subject_l" value="{{.SubjectL}}">
         </label>
-        <label>State / Province
+        <label>省/州
           <input type="text" name="subject_st" value="{{.SubjectST}}">
         </label>
-        <label>Country
+        <label>国家
           <input type="text" name="subject_c" maxlength="2" value="{{.SubjectC}}">
         </label>
       </div>
     </fieldset>
-
     <fieldset>
-      <legend><strong>Key</strong></legend>
+      <legend><strong>密钥</strong></legend>
       <div class="grid">
-        <label>Algorithm
+        <label>算法
           <select name="key_algo">
             <option value="rsa" {{if eq .KeyAlgo "rsa"}}selected{{end}}>RSA</option>
             <option value="ecdsa" {{if eq .KeyAlgo "ecdsa"}}selected{{end}}>ECDSA</option>
             <option value="ed25519" {{if eq .KeyAlgo "ed25519"}}selected{{end}}>Ed25519</option>
           </select>
         </label>
-        <label>Parameters
+        <label>参数
           <input type="text" name="key_algo_params" value="{{.KeyAlgoParams}}" placeholder="2048 / 3072 / 4096 (RSA), P-256 / P-384 (ECDSA)">
         </label>
       </div>
     </fieldset>
-
     <fieldset>
-      <legend><strong>Validity</strong></legend>
-      <label>Days
+      <legend><strong>有效期</strong></legend>
+      <label>天数
         <input type="number" name="validity_days" min="1" required value="{{.ValidityDays}}">
       </label>
     </fieldset>
-
-    <button type="submit" style="margin-top: 0.5rem;">Issue root CA</button>
+    <button type="submit" style="margin-top: 0.5rem;">签发根CA</button>
   </form>
 </div>
 {{end}}

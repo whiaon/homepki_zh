@@ -1,20 +1,18 @@
 {{define "title"}}{{.View.SubjectCN}} — homepki{{end}}
-
 {{define "header_actions"}}
 <nav>
   <ul>
-    <li><span class="pill pill-ok">unlocked</span></li>
-    <li><a href="/">← Back</a></li>
+    <li><span class="pill pill-ok">已解锁</span></li>
+    <li><a href="/">← 返回</a></li>
     <li>
       <form method="post" action="/lock" style="margin: 0;">
         <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
-        <button type="submit" class="secondary outline">Lock</button>
+        <button type="submit" class="secondary outline">锁定</button>
       </form>
     </li>
   </ul>
 </nav>
 {{end}}
-
 {{define "content"}}
 <article>
   <header>
@@ -25,62 +23,52 @@
       <span class="pill {{.View.StatusPillClass}}">{{.View.EffectiveStatus}}</span>
       {{if eq .View.Source "imported"}}
       &middot;
-      <span class="pill pill-muted">imported</span>
+      <span class="pill pill-muted">已导入</span>
       {{end}}
     </small>
   </header>
-
   {{if eq .View.Source "imported"}}
   <p style="margin: 0.5rem 0 1rem; padding: 0.5rem 0.75rem; background: #fafbfc; border-left: 3px solid var(--pico-muted-border-color); color: var(--pico-muted-color); font-size: 0.85rem;">
-    This certificate was imported. Children issued through homepki get a
-    homepki CRL distribution point automatically; revoking those works
-    end-to-end. The imported root itself carries whatever DP (if any) it
-    was minted with — homepki can't change that without reissuing.
+    此证书为导入证书。通过 homepki 签发的子证书会自动配置 homepki CRL 分发点，吊销操作可以端到端生效。
+    导入的根证书本身沿用原有分发点（如有），homepki 无法在不重新签发证书的情况下修改该信息。
   </p>
   {{end}}
-
-  <h3 style="font-size: 0.95rem; font-weight: 500;">Subject</h3>
+  <h3 style="font-size: 0.95rem; font-weight: 500;">主体信息</h3>
   <dl>
-    <dt>Common Name</dt><dd>{{.View.SubjectCN}}</dd>
-    {{if .View.SubjectO}}<dt>Organization</dt><dd>{{.View.SubjectO}}</dd>{{end}}
-    {{if .View.SubjectOU}}<dt>Org. Unit</dt><dd>{{.View.SubjectOU}}</dd>{{end}}
-    {{if .View.SubjectL}}<dt>Locality</dt><dd>{{.View.SubjectL}}</dd>{{end}}
-    {{if .View.SubjectST}}<dt>State</dt><dd>{{.View.SubjectST}}</dd>{{end}}
-    {{if .View.SubjectC}}<dt>Country</dt><dd>{{.View.SubjectC}}</dd>{{end}}
+    <dt>通用名称</dt><dd>{{.View.SubjectCN}}</dd>
+    {{if .View.SubjectO}}<dt>组织</dt><dd>{{.View.SubjectO}}</dd>{{end}}
+    {{if .View.SubjectOU}}<dt>组织单元</dt><dd>{{.View.SubjectOU}}</dd>{{end}}
+    {{if .View.SubjectL}}<dt>地点</dt><dd>{{.View.SubjectL}}</dd>{{end}}
+    {{if .View.SubjectST}}<dt>州/省</dt><dd>{{.View.SubjectST}}</dd>{{end}}
+    {{if .View.SubjectC}}<dt>国家</dt><dd>{{.View.SubjectC}}</dd>{{end}}
   </dl>
-
   {{if .View.SANsDisplay}}
-  <h3 style="font-size: 0.95rem; font-weight: 500;">Subject alternative names</h3>
+  <h3 style="font-size: 0.95rem; font-weight: 500;">主题备用名称</h3>
   <p><code>{{.View.SANsDisplay}}</code></p>
   {{end}}
-
-  <h3 style="font-size: 0.95rem; font-weight: 500;">Issuer</h3>
+  <h3 style="font-size: 0.95rem; font-weight: 500;">颁发者</h3>
   <p>
     {{if .IssuerID}}
       <a href="/certs/{{.IssuerID}}">{{.IssuerCN}}</a>
     {{else}}
-      <em>self-signed</em>
+      <em>自签名</em>
     {{end}}
   </p>
-
-  <h3 style="font-size: 0.95rem; font-weight: 500;">Validity</h3>
+  <h3 style="font-size: 0.95rem; font-weight: 500;">有效期</h3>
   <dl>
-    <dt>Not before</dt><dd>{{.View.NotBeforeDisplay}}</dd>
-    <dt>Not after</dt><dd>{{.View.NotAfterDisplay}} <small>({{.View.RelativeExpiry}})</small></dd>
+    <dt>起始时间</dt><dd>{{.View.NotBeforeDisplay}}</dd>
+    <dt>到期时间</dt><dd>{{.View.NotAfterDisplay}} <small>({{.View.RelativeExpiry}})</small></dd>
   </dl>
-
-  <h3 style="font-size: 0.95rem; font-weight: 500;">Key</h3>
+  <h3 style="font-size: 0.95rem; font-weight: 500;">密钥</h3>
   <dl>
-    <dt>Algorithm</dt><dd>{{.View.KeyDisplay}}</dd>
+    <dt>算法</dt><dd>{{.View.KeyDisplay}}</dd>
   </dl>
-
-  <h3 style="font-size: 0.95rem; font-weight: 500;">Identifiers</h3>
+  <h3 style="font-size: 0.95rem; font-weight: 500;">标识信息</h3>
   <dl>
-    <dt>Serial</dt><dd><code>{{.View.SerialNumber}}</code></dd>
+    <dt>序列号</dt><dd><code>{{.View.SerialNumber}}</code></dd>
     <dt>SHA-256</dt><dd><code style="font-size: 0.78rem;">{{.FingerprintFmt}}</code></dd>
   </dl>
-
-  <h3 style="font-size: 0.95rem; font-weight: 500;">Chain</h3>
+  <h3 style="font-size: 0.95rem; font-weight: 500;">证书链</h3>
   <ol>
     {{range .Chain}}
     <li>
@@ -92,115 +80,102 @@
     </li>
     {{end}}
   </ol>
-
   {{if eq .View.Status "active"}}
-  <h3 style="font-size: 0.95rem; font-weight: 500;">Rotate</h3>
+  <h3 style="font-size: 0.95rem; font-weight: 500;">轮换证书</h3>
   <p>
-    <a href="/certs/{{.View.ID}}/rotate" role="button" class="secondary">Rotate this certificate</a>
+    <a href="/certs/{{.View.ID}}/rotate" role="button" class="secondary">轮换此证书</a>
     <small style="display: block; color: var(--pico-muted-color); margin-top: 0.5rem;">
-      Issues a successor and marks this one superseded. Same parent, same chain;
-      a new keypair is generated.
+      生成继任证书并将当前证书标记为已替代。父证书与证书链保持不变，会生成全新密钥对。
     </small>
   </p>
   {{end}}
-
   {{if ne .View.Status "revoked"}}
-  <h3 style="font-size: 0.95rem; font-weight: 500;">Revoke</h3>
+  <h3 style="font-size: 0.95rem; font-weight: 500;">吊销证书</h3>
   <details>
-    <summary role="button" class="contrast outline">Revoke this certificate</summary>
+    <summary role="button" class="contrast outline">吊销此证书</summary>
     <form method="post" action="/certs/{{.View.ID}}/revoke" style="margin-top: 0.5rem;">
       <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
-      <label>Reason
+      <label>吊销原因
         <select name="reason" required>
-          <option value="0">unspecified</option>
-          <option value="1">key compromise</option>
-          {{if .View.IsCA}}<option value="2">CA compromise</option>{{end}}
-          <option value="3">affiliation changed</option>
-          <option value="4">superseded</option>
-          <option value="5">cessation of operation</option>
-          <option value="9">privilege withdrawn</option>
-          {{if .View.IsCA}}<option value="10">AA compromise</option>{{end}}
+          <option value="0">未指定</option>
+          <option value="1">密钥泄露</option>
+          {{if .View.IsCA}}<option value="2">CA证书泄露</option>{{end}}
+          <option value="3">隶属关系变更</option>
+          <option value="4">已被替代</option>
+          <option value="5">业务停止运营</option>
+          <option value="9">权限撤销</option>
+          {{if .View.IsCA}}<option value="10">AA证书泄露</option>{{end}}
         </select>
       </label>
       <button type="submit" class="contrast" style="margin-top: 0.5rem;">
-        Revoke
+        吊销
       </button>
       <small style="display: block; color: var(--pico-muted-color); margin-top: 0.5rem;">
-        Adds this cert to its issuer's CRL on the next regeneration. Revocation is permanent.
-        {{if eq .View.Status "superseded"}}This cert is superseded by a successor; revoking it now puts the old serial on the CRL.{{end}}
+        下次CRL重新生成时，该证书会加入颁发者的证书吊销列表。吊销操作永久生效。
+        {{if eq .View.Status "superseded"}}该证书已有继任证书；现在吊销会将旧序列号写入CRL。{{end}}
       </small>
     </form>
   </details>
   {{end}}
-
-  <h3 style="font-size: 0.95rem; font-weight: 500;">Downloads</h3>
+  <h3 style="font-size: 0.95rem; font-weight: 500;">下载</h3>
   <ul>
-    <li><a href="/certs/{{.View.ID}}/cert.pem">cert.pem</a> <small>— PEM-encoded certificate</small></li>
-    <li><a href="/certs/{{.View.ID}}/key.pem">key.pem</a> <small>— PKCS#8 private key (decrypted with the in-memory KEK)</small></li>
+    <li><a href="/certs/{{.View.ID}}/cert.pem">cert.pem</a> <small> — PEM格式证书文件</small></li>
+    <li><a href="/certs/{{.View.ID}}/key.pem">key.pem</a> <small> — PKCS#8私钥（使用内存KEK解密）</small></li>
     {{if ne .View.Type "root_ca"}}
-    <li><a href="/certs/{{.View.ID}}/chain.pem">chain.pem</a> <small>— issuing chain, excluding the self-signed root</small></li>
+    <li><a href="/certs/{{.View.ID}}/chain.pem">chain.pem</a> <small> — 证书链，不含自签名根证书</small></li>
     {{end}}
     {{if eq .View.Type "leaf"}}
-    <li><a href="/certs/{{.View.ID}}/fullchain.pem">fullchain.pem</a> <small>— this cert followed by the chain</small></li>
+    <li><a href="/certs/{{.View.ID}}/fullchain.pem">fullchain.pem</a> <small> — 当前证书+完整证书链</small></li>
     {{end}}
     {{if .View.CanSignCRL}}
-    <li><a href="/crl/{{.View.ID}}.crl">latest.crl</a> <small>— current CRL (also at the public CRL distribution URL baked into issued certs)</small></li>
+    <li><a href="/crl/{{.View.ID}}.crl">latest.crl</a> <small> — 当前CRL（也在证书内置的公共CRL分发地址提供）</small></li>
     {{end}}
   </ul>
-
   {{if .View.CanSignCRL}}
-  <h3 style="font-size: 0.95rem; font-weight: 500;">CRL history</h3>
+  <h3 style="font-size: 0.95rem; font-weight: 500;">CRL历史记录</h3>
   <p>
-    <a href="/certs/{{.View.ID}}/crls">View every signed CRL snapshot →</a>
+    <a href="/certs/{{.View.ID}}/crls">查看所有已签名CRL快照 →</a>
     <small style="display: block; color: var(--pico-muted-color); margin-top: 0.25rem;">
-      Each revocation regenerates the CRL with a new monotonic number; old
-      snapshots are kept so historical verification still works.
+      每次吊销都会生成递增版本号的新CRL，旧快照会保留，保证历史验证可用。
     </small>
   </p>
   {{else if .View.IsCA}}
   <h3 style="font-size: 0.95rem; font-weight: 500;">CRL</h3>
   <p style="color: var(--pico-muted-color); font-size: 0.9rem;">
-    This CA's certificate does not carry the <code>cRLSign</code> KeyUsage bit,
-    so homepki cannot publish a CRL for it. Children revoked under this CA
-    are still recorded in the database, but their revocation cannot be
-    distributed via CRL — manage that out-of-band (e.g. via trust-store
-    removal) until this CA is rotated to a homepki-issued successor.
+    此CA证书不包含 cRLSign 密钥用途位，homepki无法为此CA发布CRL。该CA下被吊销的子证书仍会存入数据库，但无法通过CRL分发。
+    需要通过外部方式管理（例如删除信任存储），直到将此CA轮换为由homepki签发的新CA。
   </p>
   {{end}}
-
   {{if eq .View.Type "leaf"}}
   <details>
-    <summary role="button" class="secondary outline">PKCS#12 bundle (key + leaf + chain)</summary>
+    <summary role="button" class="secondary outline">PKCS#12 打包文件（私钥+终端证书+证书链）</summary>
     <form method="post" action="/certs/{{.View.ID}}/bundle.p12" style="margin-top: 0.5rem;">
       <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
-      <label>Bundle password
+      <label>打包文件密码
         <input type="password" name="password" required autocomplete="new-password">
       </label>
-      <button type="submit" class="secondary">Download bundle.p12</button>
+      <button type="submit" class="secondary">下载 bundle.p12</button>
       <small style="display: block; color: var(--pico-muted-color); margin-top: 0.5rem;">
-        The password protects the private key inside the bundle. POST is used so the
-        password isn't recorded in URLs or referrer headers.
+        密码用于保护包内私钥。使用POST提交，避免密码记录在URL或引用头中。
       </small>
     </form>
   </details>
-
   {{template "deploy_targets_fragment" .}}
   {{end}}
 </article>
 {{end}}
-
 {{define "deploy_targets_fragment"}}
 <section id="deploy-targets" hx-target="this" hx-swap="outerHTML">
-  <h3 style="font-size: 0.95rem; font-weight: 500;">Deploy targets</h3>
+  <h3 style="font-size: 0.95rem; font-weight: 500;">部署目标</h3>
   {{if .DeployTargets}}
   <table>
     <thead>
       <tr>
-        <th>Name</th>
-        <th>Cert path</th>
-        <th>Auto on rotate</th>
-        <th>Last status</th>
-        <th>Last run</th>
+        <th>名称</th>
+        <th>证书路径</th>
+        <th>轮换自动部署</th>
+        <th>上次状态</th>
+        <th>上次执行</th>
         <th></th>
       </tr>
     </thead>
@@ -209,7 +184,7 @@
       <tr>
         <td><strong>{{.Name}}</strong></td>
         <td><code style="font-size: 0.78rem;">{{.CertPath}}</code></td>
-        <td>{{if .AutoOnRotate}}yes{{else}}no{{end}}</td>
+        <td>{{if .AutoOnRotate}}是{{else}}否{{end}}</td>
         <td><span class="pill {{.StatusPillClass}}">{{.EffectiveStatus}}</span></td>
         <td>{{if .LastDeployedDisplay}}<small>{{.LastDeployedDisplay}}</small>{{else}}<small>—</small>{{end}}</td>
         <td style="text-align: right; white-space: nowrap;">
@@ -217,15 +192,15 @@
                 hx-post="/certs/{{$.View.ID}}/deploy/{{.ID}}/run"
                 style="display: inline; margin: 0;">
             <input type="hidden" name="csrf_token" value="{{$.CSRFToken}}">
-            <button type="submit" class="secondary outline" style="padding: 0.2rem 0.5rem;">Run</button>
+            <button type="submit" class="secondary outline" style="padding: 0.2rem 0.5rem;">执行</button>
           </form>
-          <a href="/certs/{{$.View.ID}}/deploy/{{.ID}}/edit" role="button" class="secondary outline" style="padding: 0.2rem 0.5rem;">Edit</a>
+          <a href="/certs/{{$.View.ID}}/deploy/{{.ID}}/edit" role="button" class="secondary outline" style="padding: 0.2rem 0.5rem;">编辑</a>
           <form method="post" action="/certs/{{$.View.ID}}/deploy/{{.ID}}/delete"
                 hx-post="/certs/{{$.View.ID}}/deploy/{{.ID}}/delete"
-                hx-confirm="Delete deploy target {{.Name}}?"
-                style="display: inline; margin: 0;" onsubmit="return confirm('Delete deploy target {{.Name}}?');">
+                hx-confirm="删除部署目标 {{.Name}}？"
+                style="display: inline; margin: 0;" onsubmit="return confirm('删除部署目标 {{.Name}}？');">
             <input type="hidden" name="csrf_token" value="{{$.CSRFToken}}">
-            <button type="submit" class="contrast outline" style="padding: 0.2rem 0.5rem;">Delete</button>
+            <button type="submit" class="contrast outline" style="padding: 0.2rem 0.5rem;">删除</button>
           </form>
         </td>
       </tr>
@@ -236,19 +211,18 @@
     </tbody>
   </table>
   <p style="margin-top: 0.5rem;">
-    <a href="/certs/{{.View.ID}}/deploy/new" role="button" class="secondary">Add deploy target</a>
+    <a href="/certs/{{.View.ID}}/deploy/new" role="button" class="secondary">添加部署目标</a>
     <form method="post" action="/certs/{{.View.ID}}/deploy"
           hx-post="/certs/{{.View.ID}}/deploy"
           style="display: inline; margin-left: 0.5rem;">
       <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
-      <button type="submit" class="secondary outline">Run all</button>
+      <button type="submit" class="secondary outline">全部执行</button>
     </form>
   </p>
   {{else}}
   <p>
-    No deploy targets configured.
-    <a href="/certs/{{.View.ID}}/deploy/new">Add one</a> to write this cert
-    to disk somewhere.
+    暂无配置部署目标。
+    <a href="/certs/{{.View.ID}}/deploy/new">添加一个</a>，将此证书写入目标磁盘。
   </p>
   {{end}}
 </section>

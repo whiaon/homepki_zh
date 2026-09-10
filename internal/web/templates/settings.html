@@ -1,55 +1,46 @@
-{{define "title"}}homepki — settings{{end}}
-
+{{define "title"}}homepki — 设置{{end}}
 {{define "header_actions"}}
 <nav>
   <ul>
-    <li><span class="pill pill-ok">unlocked</span></li>
-    <li><a href="/">← Back</a></li>
+    <li><span class="pill pill-ok">已解锁</span></li>
+    <li><a href="/">← 返回</a></li>
     <li>
       <form method="post" action="/lock" style="margin: 0;">
         <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
-        <button type="submit" class="secondary outline">Lock</button>
+        <button type="submit" class="secondary outline">锁定</button>
       </form>
     </li>
   </ul>
 </nav>
 {{end}}
-
 {{define "content"}}
 <article>
-  <header><h2 style="margin-bottom: 0.25rem;">Settings</h2></header>
-
+  <header><h2 style="margin-bottom: 0.25rem;">设置</h2></header>
   {{if eq .Notice "passphrase-rotated"}}
-    <p role="alert" style="color: var(--pico-color-green-550);">Passphrase rotated successfully.</p>
+    <p role="alert" style="color: var(--pico-color-green-550);">通行短语轮换成功。</p>
   {{end}}
-
-  <h3 style="font-size: 0.95rem; font-weight: 500;">Rotate passphrase</h3>
+  <h3 style="font-size: 0.95rem; font-weight: 500;">轮换通行短语</h3>
   <p>
     <small>
-      Re-wraps every per-cert DEK under a new KEK derived from the new
-      passphrase. The encrypted private keys themselves don't change. Other
-      devices logged in to homepki will need to re-unlock.
+      使用由新通行短语派生的新KEK，重新包装每张证书对应的DEK。加密后的私钥本身不会改变。
+      其他已登录homepki的设备需要重新解锁。
     </small>
   </p>
-
   {{if .Error}}<p role="alert" style="color: var(--pico-color-red-550);">{{.Error}}</p>{{end}}
-
   <form method="post" action="/settings/passphrase">
     <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
     <input type="hidden" name="form_token" value="{{.FormToken}}">
-
-    <label>Current passphrase
+    <label>当前通行短语
       <input type="password" name="current" required autocomplete="current-password" autofocus>
     </label>
-    <label>New passphrase
+    <label>新通行短语
       <input type="password" name="new" required minlength="{{.MinLen}}" autocomplete="new-password">
     </label>
-    <label>Confirm new passphrase
+    <label>确认新通行短语
       <input type="password" name="new2" required minlength="{{.MinLen}}" autocomplete="new-password">
     </label>
-    <small>Must be at least {{.MinLen}} characters.</small>
-
-    <button type="submit" style="margin-top: 0.75rem;">Rotate passphrase</button>
+    <small>至少需要 {{.MinLen}} 个字符。</small>
+    <button type="submit" style="margin-top: 0.75rem;">轮换通行短语</button>
   </form>
 </article>
 {{end}}

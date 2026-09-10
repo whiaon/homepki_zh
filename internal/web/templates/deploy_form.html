@@ -1,77 +1,66 @@
 {{define "title"}}homepki — {{.PageTitle}}{{end}}
-
 {{define "header_actions"}}
 <nav>
   <ul>
-    <li><span class="pill pill-ok">unlocked</span></li>
-    <li><a href="/certs/{{.CertID}}">← Back to {{.CertCN}}</a></li>
+    <li><span class="pill pill-ok">已解锁</span></li>
+    <li><a href="/certs/{{.CertID}}">← 返回 {{.CertCN}}</a></li>
   </ul>
 </nav>
 {{end}}
-
 {{define "content"}}
 <article>
   <header><h2 style="margin-bottom: 0.25rem;">{{.PageHeading}}</h2></header>
-  <p><small>For leaf cert <strong>{{.CertCN}}</strong>. Files are written via temp+rename so a concurrent reader never sees a half-written file.</small></p>
-
+  <p><small>适用于终端证书 <strong>{{.CertCN}}</strong>。文件采用临时文件+重命名机制写入，并发读取时不会读到不完整的文件。</small></p>
   {{template "form_fragment" .}}
 </article>
 {{end}}
-
 {{define "form_fragment"}}
 <div id="deploy-form" hx-target="this" hx-swap="outerHTML">
   {{if .Error}}<p role="alert" style="color: var(--pico-color-red-550);">{{.Error}}</p>{{end}}
-
   <form method="post" action="{{.FormAction}}" hx-post="{{.FormAction}}">
     <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
     <input type="hidden" name="form_token" value="{{.FormToken}}">
-
-    <label>Name (required)
+    <label>名称（必填）
       <input type="text" name="name" required autofocus value="{{.Name}}" placeholder="nginx">
-      <small>Operator-given label. Unique per cert.</small>
+      <small>管理员自定义标签，每个证书下名称唯一。</small>
     </label>
-
     <fieldset>
-      <legend><strong>Output paths</strong></legend>
-      <label>Cert path (required, absolute)
+      <legend><strong>输出路径</strong></legend>
+      <label>证书路径（必填，绝对路径）
         <input type="text" name="cert_path" required value="{{.CertPath}}" placeholder="/etc/ssl/certs/leaf.crt">
       </label>
-      <label>Key path (required, absolute)
+      <label>私钥路径（必填，绝对路径）
         <input type="text" name="key_path" required value="{{.KeyPath}}" placeholder="/etc/ssl/private/leaf.key">
       </label>
-      <label>Chain path <small>(optional; if set, fullchain.pem is written here)</small>
+      <label>证书链路径 <small>（选填；填写后，完整证书链 fullchain.pem 将写入此处）</small>
         <input type="text" name="chain_path" value="{{.ChainPath}}" placeholder="/etc/ssl/certs/leaf-fullchain.crt">
       </label>
     </fieldset>
-
     <fieldset>
-      <legend><strong>File metadata</strong></legend>
+      <legend><strong>文件元信息</strong></legend>
       <div class="grid">
-        <label>Mode (octal, required)
+        <label>权限（八进制，必填）
           <input type="text" name="mode" required value="{{.Mode}}" placeholder="0640">
         </label>
-        <label>Owner <small>(numeric uid or username)</small>
+        <label>所有者 <small>（数字UID或用户名）</small>
           <input type="text" name="owner" value="{{.Owner}}">
         </label>
-        <label>Group <small>(numeric gid or group)</small>
+        <label>用户组 <small>（数字GID或组名）</small>
           <input type="text" name="group" value="{{.Group}}">
         </label>
       </div>
     </fieldset>
-
     <fieldset>
-      <legend><strong>Reload</strong></legend>
-      <label>Post-deploy command <small>(optional; runs through <code>sh -c</code>)</small>
+      <legend><strong>重载</strong></legend>
+      <label>部署后执行命令 <small>（选填；通过 <code>sh -c</code> 运行）</small>
         <input type="text" name="post_command" value="{{.PostCommand}}" placeholder="nginx -s reload">
       </label>
     </fieldset>
-
     <label>
       <input type="checkbox" name="auto_on_rotate" value="1" {{if .AutoOnRotate}}checked{{end}}>
-      Auto-deploy when this certificate is rotated
+      证书轮换时自动部署
     </label>
-
-    <button type="submit" style="margin-top: 0.5rem;">Save deploy target</button>
+    <button type="submit" style="margin-top: 0.5rem;">保存部署目标</button>
   </form>
 </div>
 {{end}}

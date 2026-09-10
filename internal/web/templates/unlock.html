@@ -1,18 +1,15 @@
-{{define "title"}}homepki — unlock{{end}}
-
+{{define "title"}}homepki — 解锁{{end}}
 {{define "content"}}
 <article>
-  <header><h2 style="margin-bottom: 0.25rem;">Unlock</h2></header>
-
+  <header><h2 style="margin-bottom: 0.25rem;">解锁</h2></header>
   {{if .Error}}<p role="alert" style="color: var(--pico-color-red-550);">{{.Error}}</p>{{end}}
-
   <form method="post" action="/unlock">
     <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
     <label>
-      Passphrase
+      通行短语
       <input type="password" name="passphrase" required autocomplete="current-password" autofocus>
     </label>
-    <button type="submit" style="margin-top: 0.5rem;">Unlock</button>
+    <button type="submit" style="margin-top: 0.5rem;">解锁</button>
   </form>
 </article>
 {{end}}

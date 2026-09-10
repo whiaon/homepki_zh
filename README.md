@@ -32,7 +32,7 @@ docker run -d \
   -p 8080:8080 \
   -v homepki-data:/data \
   -e CRL_BASE_URL=http://localhost:8080 \
-  ghcr.io/whiaon/homepki_zh:latest
+  ghcr.io/whiaon/homepki_zh:sha-0a90f7a
 ```
 
 **2. 在浏览器打开 Web 管理界面**：http://localhost:8080 首次访问会进入**首次初始化设置**页面，设置通行短语（≥12 字符）并二次确认。务必妥善保存，没有通行短语就无法恢复加密私钥。
@@ -46,7 +46,7 @@ docker run -d \
 ```
 services:
   homepki:
-    image: ghcr.io/whiaon/homepki_zh:latest
+    image: ghcr.io/whiaon/homepki_zh:sha-0a90f7a
     container_name: homepki
     restart: unless-stopped
     ports:

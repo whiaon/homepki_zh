@@ -20,7 +20,7 @@ homepki 补齐了这个缺口：
 
 ## 运行方式
 
-镜像地址：`ghcr.io/klice/homepki`。选择合适标签：`latest`为最新稳定版；`vX.Y.Z`锁定特定版本；`edge`跟随主分支（开发预览版，尚未正式发布）。
+镜像地址：`ghcr.io/whiaon/homepki_zh`。选择合适标签：`latest`为最新稳定版；`vX.Y.Z`锁定特定版本；`edge`跟随主分支（开发预览版，尚未正式发布）。
 
 ### Docker 快速启动
 
@@ -32,7 +32,7 @@ docker run -d \
   -p 8080:8080 \
   -v homepki-data:/data \
   -e CRL_BASE_URL=http://localhost:8080 \
-  ghcr.io/klice/homepki:latest
+  ghcr.io/whiaon/homepki_zh:latest
 ```
 
 **2. 在浏览器打开 Web 管理界面**：http://localhost:8080 首次访问会进入**首次初始化设置**页面，设置通行短语（≥12 字符）并二次确认。务必妥善保存，没有通行短语就无法恢复加密私钥。
@@ -46,7 +46,7 @@ docker run -d \
 ```
 services:
   homepki:
-    image: ghcr.io/klice/homepki:latest
+    image: ghcr.io/whiaon/homepki_zh:latest
     container_name: homepki
     restart: unless-stopped
     ports:

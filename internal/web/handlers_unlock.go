@@ -98,7 +98,7 @@ func (s *Server) handleUnlockPost(w http.ResponseWriter, r *http.Request) {
 	kek, err := crypto.DeriveAndVerify([]byte(pp), salt, params, verifier)
 	if errors.Is(err, crypto.ErrPassphraseMismatch) {
 		s.backoff.Failure()
-		s.renderUnlockError(w, r, "Incorrect passphrase.")
+		s.renderUnlockError(w, r, "密码错误.")
 		return
 	}
 	if err != nil {

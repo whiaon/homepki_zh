@@ -61,7 +61,7 @@ docker run -d \
   -p 8080:8080 \
   -v homepki-data:/data \
   -e CRL_BASE_URL=http://localhost:8080 \
-  ghcr.io/klice/homepki:latest
+  ghcr.io/klice/homepki_zh:latest
 ```
 
 **2. Open the web UI** at <http://localhost:8080> in your browser.
@@ -82,7 +82,7 @@ services, drop this into a `docker-compose.yml`:
 ```yaml
 services:
   homepki:
-    image: ghcr.io/klice/homepki:latest
+    image: ghcr.io/klice/homepki_zh:latest
     container_name: homepki
     restart: unless-stopped
     ports:

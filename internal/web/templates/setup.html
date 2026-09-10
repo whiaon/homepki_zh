@@ -1,24 +1,21 @@
-{{define "title"}}homepki — first-run setup{{end}}
-
+{{define "title"}}homepki — 首次初始化设置{{end}}
 {{define "content"}}
 <article>
-  <header><h2 style="margin-bottom: 0.25rem;">First-run setup</h2></header>
-  <p>Choose a passphrase to encrypt the PKI keystore. Make it strong — there is no recovery if you forget it.</p>
-
+  <header><h2 style="margin-bottom: 0.25rem;">首次初始化设置</h2></header>
+  <p>请选择通行短语来加密PKI密钥库。请设置高强度密码，一旦遗忘将无法恢复。</p>
   {{if .Error}}<p role="alert" style="color: var(--pico-color-red-550);">{{.Error}}</p>{{end}}
-
   <form method="post" action="/setup">
     <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
     <label>
-      Passphrase
+      通行短语
       <input type="password" name="passphrase" required minlength="{{.MinLen}}" autocomplete="new-password" autofocus>
     </label>
     <label>
-      Confirm passphrase
+      确认通行短语
       <input type="password" name="passphrase2" required minlength="{{.MinLen}}" autocomplete="new-password">
     </label>
-    <small>Must be at least {{.MinLen}} characters.</small>
-    <button type="submit" style="margin-top: 0.75rem;">Set passphrase</button>
+    <small>至少需要 {{.MinLen}} 个字符。</small>
+    <button type="submit" style="margin-top: 0.75rem;">设置通行短语</button>
   </form>
 </article>
 {{end}}
